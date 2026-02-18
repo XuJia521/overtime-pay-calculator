@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>加班费计算器</title>
+<style>
+  :root {
+    --bg-primary: #0f1120;
+    --bg-card: #1a1d32;
+    --bg-input: #252842;
+    --text-primary: #f0f0f5;
+    --text-secondary: #8b8fa3;
+    --text-muted: #5a5e74;
+    --accent: #7c6bf5;
+    --accent-light: #9d8fff;
+    --border: #2e3150;
+    --success: #4ecb8d;
+    --radius: 14px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 0 20px 40px;
+    overflow-x: hidden;
+  }
+
+  .header {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+
+  .header-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 24px rgba(124, 107, 245, 0.3);
+    border-radius: 20px;
+  }
+
+  .header-icon svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+  }
+
+  .input-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .input-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .input-field {
+    width: 100%;
+    height: 48px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 16px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .input-field:focus {
+    border-color: var(--accent);
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .input-unit {
+    position: relative;
+  }
+
+  .input-unit .input-field {
+    padding-right: 48px;
+  }
+
+  .input-unit .unit {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .section-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding-left: 2px;
+  }
+
+  .btn-calc {
+    width: 100%;
+    height: 52px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+    box-shadow: 0 4px 16px rgba(124, 107, 245, 0.35);
+  }
+
+  .btn-calc:active {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+
+  /* 结果区域 */
+  .result-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+    display: none;
+  }
+
+  .result-card.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-item:last-child {
+    border-bottom: none;
+  }
+
+  .result-item .label {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .result-item .value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .result-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 4px;
+    border-top: 1px solid var(--accent);
+    margin-top: 4px;
+  }
+
+  .result-total .label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .result-total .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-light);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .formula-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 24px;
+    line-height: 1.8;
+  }
+
+  .btn-reset {
+    width: 100%;
+    height: 44px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin-top: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .btn-reset:active {
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7c6bf5"/><stop offset="100%" style="stop-color:#9d8fff"/></linearGradient></defs><rect width="180" height="180" rx="40" ry="40" fill="url(#bg)"/><circle cx="82" cy="92" r="42" fill="none" stroke="white" stroke-width="7" stroke-linecap="round"/><circle cx="82" cy="92" r="4" fill="white"/><line x1="82" y1="92" x2="68" y2="72" stroke="white" stroke-width="6" stroke-linecap="round"/><line x1="82" y1="92" x2="82" y2="62" stroke="white" stroke-width="5" stroke-linecap="round"/><line x1="134" y1="48" x2="134" y2="78" stroke="white" stroke-width="7" stroke-linecap="round"/><line x1="119" y1="63" x2="149" y2="63" stroke="white" stroke-width="7" stroke-linecap="round"/></svg></div>
+  <h1>加班费计算器</h1>
+  <p>时薪 = 月工资 ÷ 21.75 ÷ 8</p>
+</div>
+
+<div class="card">
+  <div class="input-group">
+    <label class="input-label">月工资（元）</label>
+    <div class="input-unit">
+      <input type="number" class="input-field" id="salary" placeholder="正常工作时间工资" inputmode="decimal">
+      <span class="unit">元</span>
+    </div>
+  </div>
+
+  <div class="section-title">加班时长</div>
+
+  <div class="input-group">
+    <label class="input-label">工作日加班</label>
+    <div class="input-unit">
+      <input type="number" class="input-field" id="weekdayHours" placeholder="0" inputmode="decimal">
+      <span class="unit">小时</span>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">休息日加班</label>
+    <div class="input-unit">
+      <input type="number" class="input-field" id="weekendHours" placeholder="0" inputmode="decimal">
+      <span class="unit">小时</span>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">法定节假日加班</label>
+    <div class="input-unit">
+      <input type="number" class="input-field" id="holidayHours" placeholder="0" inputmode="decimal">
+      <span class="unit">小时</span>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="calculate()">🧮 计算加班费</button>
+</div>
+
+<div class="result-card" id="resultCard">
+  <div class="result-item">
+    <span class="label">正常时薪</span>
+    <span class="value" id="hourlyRate">-</span>
+  </div>
+  <div class="result-item">
+    <span class="label">工作日加班费（×1.5）</span>
+    <span class="value" id="weekdayPay">-</span>
+  </div>
+  <div class="result-item">
+    <span class="label">休息日加班费（×2.0）</span>
+    <span class="value" id="weekendPay">-</span>
+  </div>
+  <div class="result-item">
+    <span class="label">法定节假日加班费（×3.0）</span>
+    <span class="value" id="holidayPay">-</span>
+  </div>
+  <div class="result-total">
+    <span class="label">加班费合计</span>
+    <span class="value" id="totalPay">-</span>
+  </div>
+  <button class="btn-reset" onclick="resetForm()">重置</button>
+</div>
+
+<div class="formula-note">
+  工作日加班 = 时薪 × 时长 × 1.5<br>
+  休息日加班 = 时薪 × 时长 × 2.0<br>
+  法定节假日加班 = 时薪 × 时长 × 3.0
+</div>
+
+<script>
+function calculate() {
+  const salary = parseFloat(document.getElementById('salary').value);
+  const weekdayH = parseFloat(document.getElementById('weekdayHours').value) || 0;
+  const weekendH = parseFloat(document.getElementById('weekendHours').value) || 0;
+  const holidayH = parseFloat(document.getElementById('holidayHours').value) || 0;
+
+  if (!salary || salary <= 0) {
+    alert('请输入月工资');
+    return;
+  }
+
+  const hourlyRate = salary / 21.75 / 8;
+  const weekdayPay = hourlyRate * weekdayH * 1.5;
+  const weekendPay = hourlyRate * weekendH * 2.0;
+  const holidayPay = hourlyRate * holidayH * 3.0;
+  const totalPay = weekdayPay + weekendPay + holidayPay;
+
+  document.getElementById('hourlyRate').textContent = hourlyRate.toFixed(3) + ' 元/小时';
+  document.getElementById('weekdayPay').textContent = formatMoney(weekdayPay);
+  document.getElementById('weekendPay').textContent = formatMoney(weekendPay);
+  document.getElementById('holidayPay').textContent = formatMoney(holidayPay);
+  document.getElementById('totalPay').textContent = formatMoney(totalPay);
+
+  const resultCard = document.getElementById('resultCard');
+  resultCard.classList.add('show');
+  resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function formatMoney(num) {
+  return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' 元';
+}
+
+function resetForm() {
+  document.getElementById('salary').value = '';
+  document.getElementById('weekdayHours').value = '';
+  document.getElementById('weekendHours').value = '';
+  document.getElementById('holidayHours').value = '';
+  document.getElementById('resultCard').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 回车键触发计算
+document.querySelectorAll('.input-field').forEach(input => {
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      calculate();
+    }
+  });
+});
+</script>
+
+</body>
+</html>
